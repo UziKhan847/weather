@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:geocode/geocode.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:uzi_weather_app/model.dart';
+import 'package:uzi_weather_app/api_keys.dart';
+import 'package:uzi_weather_app/model/model.dart';
 import 'package:geolocator/geolocator.dart';
 
 void main() {
@@ -38,20 +39,16 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   late double lat;
   late double lon;
+  Map<String, dynamic> weatherJson = {};
+  String output = 'City:\nTemp:\nMain:';
 
-  //
-  //
-  //Get location method
-  Future<Position> _getCurrentLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  Future<Position> getCurrentLocation() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       return Future.error('Location services are disabled.');
     }
 
-    permission = await Geolocator.checkPermission();
+    LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
@@ -59,33 +56,21 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     }
 
-    if (permission == LocationPermission.deniedForever) {
+    if (permission == LocationPermission.deniedForever) {git 
       return Future.error(
           'Location permissions are permanently denied, we cannot request permissions.');
     }
 
-    return await Geolocator.getCurrentPosition();
+    return Geolocator.getCurrentPosition();
   }
-  //
-  //
-  //
-
-  //
-  //
-  //Weather
-  Map<String, dynamic> weatherJson = {};
-  String output = 'City:\nTemp:\nMain:';
 
   Future getWeather(String lat, String lon) async {
     var uri = Uri.parse(
-        'https://api.openweathermap.org/data/2.5/weather?lat=$lat&lon=$lon&units=metric&appid=ebadab488c34c63f81646f67c7239595');
+        'https://api.openweathermap.org/data/2.5/weather?lat=$lat&lon=$lon&units=metric&appid=$apiKey');
     var response = await http.get(uri);
 
     weatherJson = jsonDecode(response.body);
   }
-  //
-  //
-  //
 
   @override
   Widget build(BuildContext context) {
@@ -112,10 +97,10 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               ElevatedButton(
                 onPressed: () async {
-                  await _getCurrentLocation().then((value) {
-                    lat = value.latitude;
-                    lon = value.longitude;
-                  });
+                  final value = await getCurrentLocation();
+
+                  lat = value.latitude;
+                  lon = value.longitude;
 
                   await getWeather(
                       lat.toStringAsFixed(2), lon.toStringAsFixed(2));
