@@ -56,7 +56,7 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     }
 
-    if (permission == LocationPermission.deniedForever) {git 
+    if (permission == LocationPermission.deniedForever) {
       return Future.error(
           'Location permissions are permanently denied, we cannot request permissions.');
     }
